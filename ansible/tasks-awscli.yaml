@@ -1,0 +1,54 @@
+
+---
+- name: Stat check for awscli
+  ansible.builtin.stat:
+    path: '{{ _install_path }}'
+  register: installed
+
+
+- name: Create directory for awscli
+  file:
+    path: '{{ _install_path }}'
+    state: directory
+    owner: root
+    group: root
+  when: installed.stat.exists == False
+
+
+- name: Downloading awscli
+  ansible.builtin.get_url:
+    url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    dest: '{{ _install_path }}/awscli-exe-linux-x86_64.zip'
+    force: no
+  when: installed.stat.exists == False
+
+
+- name: Extracting awscli
+  ansible.builtin.unarchive:
+    src: '{{ _install_path }}/awscli-exe-linux-x86_64.zip'
+    dest: '{{ _install_path }}'
+    owner: root
+    group: root
+  when: installed.stat.exists == False
+
+
+- name: Removing awscli archive 
+  ansible.builtin.file:
+    path: '{{ _install_path }}/awscli-exe-linux-x86_64.zip'
+    state: absent
+  when: installed.stat.exists == False
+
+
+- name: Running awscli install
+  shell: |
+    /opt/awscli/aws/install -i /opt/awscli -b /opt/awscli
+  args:
+    executable: /bin/bash
+  when: installed.stat.exists == False
+
+
+- name: Updating path..
+  ansible.builtin.lineinfile:
+    path: '{{ _profile }}'
+    line: 'export PATH=$PATH:/opt/awscli/aws'
+

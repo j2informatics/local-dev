@@ -1,0 +1,123 @@
+#
+# this is ansible playbook to set up my dev machine
+#
+# ansible comes with python 3.8.5
+#
+---
+ - hosts: local
+   vars:
+     _profile: /etc/profile.d/mod_path.sh
+     _bin_dir: /bin
+   become: yes
+   tasks:
+
+
+    - name: Create file to contain Profile ENV vars
+      ansible.builtin.file:
+        path: '{{ _profile }}'
+        state: touch
+        owner: root
+        group: root
+
+
+    - name: install unzip
+      ansible.builtin.apt:
+        name: unzip
+
+
+    - name: install docker engine and client libraries
+      import_tasks: tasks-docker.yaml
+
+
+    - name: install kubectl
+      import_tasks: tasks-kubectl.yaml
+
+
+    - name: install node
+      import_tasks: tasks-archive-download.yaml 
+      vars:
+        _name: Node
+        _install_path: /opt/node
+        _download_url: https://nodejs.org/dist/v14.15.5/node-v14.15.5-linux-x64.tar.xz 
+        _download_file_name: node.tar.gz
+        _unarchived_dir_name: node-v14.15.5-linux-x64 
+
+
+    - name: install awscli
+      import_tasks: tasks-awscli.yaml
+      vars:
+        _install_path: /opt/awscli
+        _download_url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+
+
+    - name: install az cli
+      import_tasks: tasks-azcli.yaml
+      
+
+    - name: install git
+      import_tasks: tasks-git.yaml
+
+
+    - name: install helm
+      import_tasks: tasks-archive-download.yaml
+      vars:
+        _name: helm
+        _install_path: /opt/helm
+        _download_url: https://get.helm.sh/helm-v3.5.2-linux-amd64.tar.gz
+        _download_file_name: helm-v3.5.2-linux-amd64.tar.gz
+        _unarchived_dir_name: linux-amd64
+        _bin_dir: 
+
+
+    # - name: install microk8s
+    #   import_tasks: tasks-microk8s.yaml
+    #   vars:
+    #     _user_name: vagrant
+    #     _user_group: vagrant
+    #     _kube_path: /home/vagrant
+
+
+    - name: install eksctl
+      import_tasks: tasks-archive-exec-download.yaml 
+      vars:
+        _name: eksctl
+        _install_path: /opt/eksctl
+        _download_url: https://github.com/weaveworks/eksctl/releases/download/0.39.0/eksctl_Linux_amd64.tar.gz
+        _download_file_name: eksctl_Linux_arm64.tar.gz
+        _exec_name: eksctl
+        _alt_exec_name: 
+
+
+    - name: install jq
+      ansible.builtin.apt:
+         name: jq
+         state: present
+
+
+    - name: install yq
+      import_tasks: tasks-archive-exec-download.yaml
+      vars:
+        _name: yq
+        _install_path: /opt/yq
+        _download_url: https://github.com/mikefarah/yq/releases/download/v4.6.1/yq_linux_amd64.tar.gz
+        _download_file_name: yq_linux_amd64.tar.gz
+        _exec_name: yq_linux_amd64
+        _alt_exec_name: yq
+
+
+    - name: install go
+      import_tasks: tasks-archive-download.yaml
+      vars:
+        _name: go
+        _install_path: /opt/golang
+        _download_url: https://golang.org/dl/go1.16.3.linux-amd64.tar.gz
+        _download_file_name: go1.16.3.linux-amd64.tar.gz
+        _unarchived_dir_name: go
+        _bin_dir: 
+
+#
+# add angular and nx stuff
+#
+# net tools
+
+

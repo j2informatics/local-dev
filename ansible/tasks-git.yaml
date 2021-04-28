@@ -1,0 +1,20 @@
+
+---
+- name: Is git installed?
+  ansible.builtin.stat:
+    path: /usr/bin/git 
+  register: installed
+
+
+- name: update apt 1 for git
+  ansible.builtin.apt:
+    update_cache: yes
+  when: installed.stat.exists == False
+
+
+- name: Install git
+  ansible.builtin.apt:
+    name: git
+  when: installed.stat.exists == False    
+
+

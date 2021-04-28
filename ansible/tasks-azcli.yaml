@@ -1,0 +1,55 @@
+
+---
+- name: Is az cli installed?
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/azure-cli.list 
+  register: installed
+
+
+- name: Update apt 1 for az cli
+  ansible.builtin.apt:
+    update_cache: yes
+  when: installed.stat.exists == False
+
+
+- name: Install a list of packages for az cli
+  ansible.builtin.apt:
+    pkg:
+    - ca-certificates
+    - curl
+    - apt-transport-https
+    - lsb-release
+    - gnupg
+  when: installed.stat.exists == False
+
+
+- name: Adding apt key for az cli
+  shell: |
+    rm -f /etc/apt/trusted.gpg.d/microsoft.gpg
+    curl -sL https://packages.microsoft.com/keys/microsoft.asc |
+    gpg --dearmor |
+    sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
+  args:
+    executable: /bin/bash
+  when: installed.stat.exists == False
+
+
+- name: Adding apt repo for az cli
+  shell: |
+    echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ focal main" |
+    sudo tee /etc/apt/sources.list.d/azure-cli.list
+  args:
+    executable: /bin/bash
+  when: installed.stat.exists == False
+
+
+- name: update cache 2 az cli
+  ansible.builtin.apt:
+    update_cache: yes
+  when: installed.stat.exists == False
+
+
+- name: Install az cli
+  ansible.builtin.apt:
+    name: azure-cli
+  when: installed.stat.exists == False

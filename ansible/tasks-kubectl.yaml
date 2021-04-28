@@ -1,0 +1,54 @@
+
+---
+- name: Is Kubectl installed?
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/kubernetes.list 
+  register: installed
+
+
+- name: Install kubectl ... update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: installed.stat.exists == False
+
+
+- name: install Kubectl install-dependencies
+  ansible.builtin.apt:
+    pkg:
+    - ca-certificates
+    - curl
+    - apt-transport-https
+  when: installed.stat.exists == False
+
+
+- name: Install kubectl ... Adding apt key...
+  shell: |
+    rm -f /usr/share/keyrings/kubernetes-archive-keyring.gpg
+    curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  args:
+    executable: /bin/bash
+  when: installed.stat.exists == False
+
+
+- name: Install kubectl ...  Adding apt repo...
+  shell: |
+    echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | 
+    tee /etc/apt/sources.list.d/kubernetes.list
+  args:
+    executable: /bin/bash
+  when: installed.stat.exists == False
+
+
+- name: Install kubectl ...update cache again
+  ansible.builtin.apt:
+    update_cache: yes
+  when: installed.stat.exists == False
+
+
+- name: install kubectl package
+  ansible.builtin.apt:
+    pkg: 
+    - kubectl
+  when: installed.stat.exists == False
+
+

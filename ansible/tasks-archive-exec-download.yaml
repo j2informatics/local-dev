@@ -1,0 +1,53 @@
+
+---
+- name: 'Stat check for {{ _name }}'
+  ansible.builtin.stat:
+    path: '{{ _install_path }}'
+  register: installed
+
+
+- name: 'Create directory for {{ _name }}'
+  file:
+    path: '{{ _install_path }}'
+    state: directory
+    owner: root
+    group: root
+  when: installed.stat.exists == False
+
+
+- name: 'Downloading {{ _name }}' 
+  ansible.builtin.get_url:
+    url: '{{ _download_url }}'
+    dest: '{{ _install_path }}/{{ _download_file_name }}'
+    force: no
+  when: installed.stat.exists == False
+
+
+- name: 'Extracting archive for {{ _name }}'
+  ansible.builtin.unarchive:
+    src: '{{ _install_path }}/{{ _download_file_name }}'
+    dest: '{{ _install_path }}'
+    owner: root
+    group: root
+  when: installed.stat.exists == False
+
+
+- name: 'Removing archive for {{ _name }}'
+  ansible.builtin.file:
+    path: '{{ _install_path }}/{{ _download_file_name }}'
+    state: absent
+  when: installed.stat.exists == False
+
+
+- name: 'Creating symlink for {{ _name }}'
+  ansible.builtin.file:
+    src: '{{ _install_path }}/{{ _exec_name }}'
+    dest: '{{ _install_path }}/{{ _alt_exec_name }}'
+    state: link
+  when: installed.stat.exists == False and _alt_exec_name
+
+
+- name: 'Updating path for {{ _name }}'
+  ansible.builtin.lineinfile:
+    path: '{{ _profile }}'
+    line: 'export PATH=$PATH:{{ _install_path }}'

@@ -1,0 +1,62 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$initial_script = <<-'SCRIPT'
+echo ""
+echo "apt update"
+sudo apt-get update
+#
+echo ""
+echo "apt upgrade"
+sudo apt -y upgrade
+#
+echo ""
+echo "install python and ansible"
+sudo apt install -y python3-pip
+sudo apt install -y build-essential libssl-dev libffi-dev python3-dev
+sudo apt install -y ansible
+#
+echo ""
+echo "ansible galaxy"
+sudo ansible-galaxy collection install community.general
+#
+echo ""
+echo "copy ansible config files"
+sudo cp /home/vagrant/ansible/hosts /root/
+sudo cp /home/vagrant/ansible/ansible.cfg /etc/ansible/
+#
+echo ""
+echo "run ansible playbook"
+cd /home/vagrant/ansible
+sudo ansible-playbook dev-playbook.yaml
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+
+  #
+  # ubuntu 20 LTS
+  config.vm.box = "ubuntu/focal64"
+
+  #
+  # vm is just another host on home network (bridged)
+  # vm can access the outside world.
+  config.vm.network "public_network", ip: "192.168.1.127"
+
+  config.vm.synced_folder "share", "/vagrant"
+
+  config.vm.provider "virtualbox" do |vb|
+    # Display the VirtualBox GUI when booting the machine
+    vb.gui = false
+  
+    # Customize the amount of memory on the VM:
+    vb.memory = 4096
+    vb.cpus = 2
+  end
+
+  #
+  # copy ansible files to vm
+  config.vm.provision "file", source: "../ansible", destination: "$HOME/ansible"
+  config.vm.provision "initial", type: "shell", inline: $initial_script
+
+end

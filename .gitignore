@@ -1,0 +1,5 @@
+docker-dev/
+
+vagrant/.vagrant
+vagrant/share
+vagrant/config

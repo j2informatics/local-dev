@@ -1,0 +1,59 @@
+#
+# see https://docs.docker.com/engine/install/ubuntu/
+#
+---
+- name: Is Docker installed?
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/docker.list 
+  register: installed
+
+
+- name: Install Docker ... update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: installed.stat.exists == False
+
+
+- name: install Docker install dependencies
+  ansible.builtin.apt:
+    pkg:
+    - ca-certificates
+    - curl
+    - apt-transport-https
+    - gnupg
+  when: installed.stat.exists == False
+
+
+- name: Install Docker ... Adding apt key...
+  shell: |
+    rm -f /usr/share/keyrings/docker-archive-keyring.gpg
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  args:
+    executable: /bin/bash
+  when: installed.stat.exists == False
+
+
+- name: Install Docker ...  Adding apt repo...
+  shell: |
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | 
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
+  args:
+    executable: /bin/bash
+  when: installed.stat.exists == False
+
+
+- name: Install Docker ...update cache 2
+  ansible.builtin.apt:
+    update_cache: yes
+  when: installed.stat.exists == False
+
+
+- name: install Docker packages
+  ansible.builtin.apt:
+    pkg: 
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+  when: installed.stat.exists == False
+
+

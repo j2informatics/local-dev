@@ -1,0 +1,37 @@
+
+---
+- name: Is microk8s installed?
+  ansible.builtin.stat:
+    path: /snap/bin/microk8s 
+  register: installed
+
+
+- name: Installing microk8s
+  community.general.snap:
+    name: microk8s
+    classic: yes
+  when: installed.stat.exists == False
+
+
+- name: Add user to group for microk8s
+  ansible.builtin.user:
+    name: '{{ _user_name }}' 
+    append: yes
+    groups: microk8s
+  when: installed.stat.exists == False
+
+
+- name: Mod .kube ownership for microk8s
+  ansible.builtin.file:
+    state: directory
+    recurse: yes 
+    path: '{{ _kube_path }}/.kube'
+    group: '{{ _user_group }}'
+  when: installed.stat.exists == False
+
+
+- name: Add alias for microk8s
+  ansible.builtin.lineinfile:
+    path: '{{ _profile }}'
+    line: alias mk8s='microk8s kubectl'
+
